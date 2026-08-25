@@ -34,6 +34,8 @@ These rules apply to CachyOS because it uses Arch repositories and pacman.
 
 Use the source that owns the behavior:
 
+Read [CachyOS differences from generic Arch maintenance](references/cachyos-differences.md) when work touches Shelly, CachyOS repositories or mirrors, kernels and companion modules, `chwd`, boot managers, snapshots, `cachy-update`, or recovery.
+
 1. Inspect the live machine for installed packages, configuration, filesystem, boot manager, and logs.
 2. Use the current [CachyOS Wiki](https://wiki.cachyos.org/) and official CachyOS source repositories for CachyOS tools, optimized repositories, mirrors, kernels, `chwd`, snapshots, boot managers, and which package frontend new installations provide.
 3. Use the current upstream [Shelly CLI Reference](https://www.seafoam-labs.org/shelly-alpm/docs/cli-reference/) plus the installed `shelly --help` for Shelly syntax.
