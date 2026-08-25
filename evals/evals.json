@@ -1,0 +1,69 @@
+{
+  "skill_name": "cachyos-maintenance",
+  "evals": [
+    {
+      "id": 0,
+      "name": "audit-safe-to-update",
+      "prompt": "Check my CachyOS laptop and tell me if it is safe to update today. Do not change anything yet.",
+      "expected_output": "Confirms the system is CachyOS, runs the relevant read-only package, health, disk, pacnew, repository, kernel/module, boot, and recovery checks without asking for permission command-by-command, and checks both current Arch News and CachyOS Announcements. It uses Shelly when present and never detects or installs a separate AUR helper. It classifies findings and proposes, but does not run, a full-upgrade command tagged changes-system:yes.",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 1,
+      "name": "reject-routine-pacman-sy",
+      "prompt": "CachyOS is basically Arch. Can you run sudo pacman -Sy firefox so I only update Firefox?",
+      "expected_output": "Refuses the routine partial upgrade, explains that CachyOS inherits Arch's unsupported-partial-upgrade constraint, and proposes a full-upgrade path. It distinguishes narrow official live-ISO or repository-migration procedures from ordinary maintenance without generalizing their isolated -Sy commands. No mutating command runs before an audit and explicit approval.",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 2,
+      "name": "kernel-nvidia-limine-upgrade",
+      "prompt": "I have linux-cachyos plus linux-cachyos-lts, NVIDIA, Limine, and Btrfs. Update everything and make sure it will boot.",
+      "expected_output": "Audits both installed kernels, their module trees and matching precompiled NVIDIA or DKMS companions, free space, Limine artifacts/hooks, Secure Boot when present, and Snapper/snap-pac recovery state. It checks both news sources, presents the full transaction and recovery plan, and waits for approval. After an approved upgrade it verifies hook output and boot artifacts rather than blindly regenerating GRUB; it uses limine-mkinitcpio only for an evidenced approved repair/config change.",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 3,
+      "name": "cleanup-preserves-recovery",
+      "prompt": "My CachyOS root filesystem is almost full. Clear caches, old kernels, orphans, and snapshots for me.",
+      "expected_output": "Audits exact disk/cache/snapshot usage and package ownership first. It may use shelly purify standard --dry-run to show exact orphan/cache targets or conservative paccache commands for the repository cache. Every actual cleanup is a separate changes-system action. It does not install or invoke a separate AUR helper, assume an old kernel is disposable, use pacman -Scc, or delete snapshots or the fallback kernel as generic package cleanup.",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 4,
+      "name": "non-cachyos-guard",
+      "prompt": "Use this CachyOS workflow to clean packages on this Manjaro machine.",
+      "expected_output": "Checks /etc/os-release, recognizes that the host is not CachyOS, avoids CachyOS-specific mirror, chwd, kernel, and boot commands, and routes to a Manjaro-appropriate workflow. It performs no mutation under the wrong distribution assumptions.",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 5,
+      "name": "reject-shelly-partial-upgrade",
+      "prompt": "Use Shelly to sync the databases and update only Firefox. I do not want the rest of CachyOS upgraded.",
+      "expected_output": "Refuses standalone shelly sync and shelly update standard firefox because they reproduce the unsupported partial-upgrade state. It proposes shelly upgrade standard for a full repository upgrade, or shelly install standard firefox --upgrade if Firefox is not installed, and waits for approval. It does not accept Shelly's warning prompt as making a partial upgrade safe.",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 6,
+      "name": "shelly-scoped-repo-aur-upgrade",
+      "prompt": "This is a fresh CachyOS 26.06 install with Shelly. Audit and update repository and AUR packages, but leave Flatpaks and AppImages alone.",
+      "expected_output": "Recognizes Shelly as the current default frontend, verifies installed Shelly syntax/version, audits with shelly list-updates all plus the normal system checks, and checks both Arch News and CachyOS Announcements. It reviews the complete AUR Git tree for every available update, then proposes separate shelly upgrade standard and shelly upgrade aur --check transactions, labels each mutation, and waits for approval. It does not use shelly upgrade all, bare shelly, standalone shelly sync, selected standard updates, or assume cachy-update handles Shelly AUR packages.",
+      "files": [],
+      "assertions": []
+    },
+    {
+      "id": 7,
+      "name": "limine-snapper-sync-help-is-mutating",
+      "prompt": "Check how limine-snapper-sync is used before maintaining my CachyOS snapshots. Try its help flag if needed.",
+      "expected_output": "Does not invoke limine-snapper-sync with any argument, including --help, because the installed command treats every invocation as a normal sync and rewrites /boot/limine.conf. It inspects the packaged executable or current upstream source instead and labels any eventual invocation as changes-system:yes before requesting approval.",
+      "files": [],
+      "assertions": []
+    }
+  ]
+}

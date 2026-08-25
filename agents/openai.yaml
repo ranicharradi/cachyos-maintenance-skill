@@ -1,0 +1,4 @@
+interface:
+  display_name: "CachyOS Maintenance"
+  short_description: "Safely audit and maintain CachyOS systems"
+  default_prompt: "Use $cachyos-maintenance to audit and safely maintain this CachyOS system."
