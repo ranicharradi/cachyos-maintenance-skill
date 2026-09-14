@@ -54,7 +54,7 @@ command -v shelly >/dev/null && shelly --version
 Shelly is broader than a traditional AUR helper: it manages ALPM repository packages, AUR packages, and optionally Flatpak/AppImage applications. Verify current syntax using installed help and the upstream [Shelly CLI Reference](https://www.seafoam-labs.org/shelly-alpm/docs/cli-reference/). Prefer explicit commands:
 
 ```bash
-shelly list-updates all                        # query all enabled backends
+shelly list-updates all                        # query all backends; capture status and diagnostics
 shelly upgrade standard                        # full repository upgrade
 shelly search aur <package> --pkgbuild          # display an exact AUR PKGBUILD
 shelly install aur <package> --check            # approved AUR install with check()
@@ -67,7 +67,8 @@ Apply Arch's package-state boundary through Shelly:
 - Do not use `shelly update standard <packages>`; upstream explicitly labels this a partial upgrade.
 - Use `shelly install standard <package> --upgrade` when adding a repository package so the system is fully upgraded first.
 - Do not use `shelly upgrade all` in this workflow. Run the approved backends separately so a repository failure stops AUR, Flatpak, and AppImage work.
-- Before a separate `shelly install aur` or `shelly upgrade aur`, complete or confirm the repository full upgrade and review the full AUR Git tree for every target. `shelly search aur <package> --pkgbuild` shows only the PKGBUILD and is not a complete review.
+- Apply the [main audit's status handling](../SKILL.md#1-audit) to update queries. Successful output from one backend does not establish that every backend was inspected.
+- Before a separate `shelly install aur` or `shelly upgrade aur`, complete or confirm the repository full upgrade. Follow [AUR-only requests](../SKILL.md#aur-only-requests) to resolve package bases, review full Git trees and required AUR dependencies, record commits, and stop for approval if the actual revisions or transaction scope change. `shelly search aur <package> --pkgbuild` shows only the PKGBUILD and is not a complete review.
 - Do not use a bare `shelly` invocation as a scripted upgrade interface. CLI behavior has changed; use explicit subcommands supported by the installed version.
 - `shelly news` tracks Arch News viewed state but does not replace the CachyOS announcement check.
 
