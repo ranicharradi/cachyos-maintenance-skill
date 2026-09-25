@@ -29,7 +29,7 @@ The agent starts with read-only inspection. It reports the exact command, scope,
 ### Codex
 
 ```bash
-git clone https://github.com/ranicharradi/cachyos-maintenance-skill ~/.codex/skills/cachyos-maintenance
+git clone https://github.com/ranicharradi/cachyos-maintenance-skill ~/.agents/skills/cachyos-maintenance
 ```
 
 ### Claude Code
