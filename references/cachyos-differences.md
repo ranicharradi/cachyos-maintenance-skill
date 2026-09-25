@@ -120,7 +120,7 @@ uname -r
 find /usr/lib/modules -mindepth 2 -maxdepth 2 -name pkgbase -print -exec cat {} \;
 pacman -Qq | rg '^(linux|linux-lts|linux-zen|linux-hardened|linux-cachyos.*|nvidia.*|zfs.*)$'
 command -v dkms >/dev/null && dkms status
-command -v chwd >/dev/null && sudo chwd --list-installed
+command -v chwd >/dev/null && chwd --list-installed
 ```
 
 For each installed kernel, verify the initramfs and any required precompiled NVIDIA/ZFS companion package or DKMS build. Keep a known-good fallback kernel when possible. A running old kernel immediately after an upgrade is normal until reboot; a missing module tree or boot artifact is not.
@@ -160,7 +160,7 @@ The official [`cachy-update` project](https://github.com/CachyOS/cachy-update) c
 
 - `cachy-update --list` lists updates when available.
 - `cachy-update --news` surfaces Arch News.
-- `cachy-update --services` checks failed services.
+- `cachy-update --services` lists services that need a restart after an upgrade. It does not report failed units; use `systemctl --failed` for that.
 - An unqualified `cachy-update` is an interactive, mutating full-upgrade workflow and needs approval.
 
 Do not run `cachy-update` and `pacman -Syu` for the same transaction. Independently run `pacdiff -o` after the upgrade; do not assume the frontend processed `.pacnew` files.

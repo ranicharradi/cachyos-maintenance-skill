@@ -32,14 +32,14 @@ These rules apply to CachyOS because it uses Arch repositories and pacman.
 
 ## Source routing
 
-Use the source that owns the behavior:
-
 Read [CachyOS differences from generic Arch maintenance](references/cachyos-differences.md) when work touches Shelly, CachyOS repositories or mirrors, kernels and companion modules, `chwd`, boot managers, snapshots, `cachy-update`, or recovery.
+
+Use the source that owns the behavior:
 
 1. Inspect the live machine for installed packages, configuration, filesystem, boot manager, and logs.
 2. Use the current [CachyOS Wiki](https://wiki.cachyos.org/) and official CachyOS source repositories for CachyOS tools, optimized repositories, mirrors, kernels, `chwd`, snapshots, boot managers, and which package frontend new installations provide.
 3. Use the current upstream [Shelly CLI Reference](https://www.seafoam-labs.org/shelly-alpm/docs/cli-reference/) plus the installed `shelly --help` for Shelly syntax.
-4. Use local man pages and the offline or live Arch Wiki for inherited pacman, makepkg, AUR, systemd, and general Arch behavior. Report the version of `arch-wiki-docs` if relying on its snapshot.
+4. Use local man pages and the offline or live Arch Wiki for inherited pacman, makepkg, AUR, systemd, and general Arch behavior. If relying on an offline snapshot, report its package version (`arch-wiki-docs` or `arch-wiki-lite`).
 5. Before an upgrade verdict, check both current [Arch News](https://archlinux.org/news/) and [CachyOS Announcements](https://discuss.cachyos.org/c/announcements/5). Match manual-intervention notices to the installed package versions and configuration.
 
 Do not treat `informant` as required. If installed, `informant list --unread` is a useful extra Arch News check; do not mark items read without reviewing them. `shelly news` also covers Arch News and tracks viewed entries, but neither covers CachyOS announcements. Do not assume `cachy-update` covers CachyOS announcements, Shelly-managed AUR packages, or `.pacnew` review.
@@ -59,7 +59,7 @@ cat /etc/os-release
 hostnamectl
 uname -a
 uptime
-pacman -Q arch-wiki-docs 2>/dev/null || true
+pacman -Q arch-wiki-docs arch-wiki-lite 2>/dev/null || true
 pacman-conf --repo-list
 pacman -Qm
 pacman -Qtdq
@@ -86,9 +86,16 @@ fi
 command -v informant >/dev/null && informant list --unread
 ```
 
-New CachyOS GUI installations normally use Shelly since release 26.04, when it replaced Octopi. Release 26.06 also removed `paru`. Do not detect or install a separate AUR helper. If Shelly is absent, continue the repository audit with `checkupdates` and report that Shelly/AUR state was not inspected. `checkupdates` exit status `2` means no updates. Any other nonzero status is an audit failure, not evidence that no updates are available. Fetch current Arch News and CachyOS Announcements separately before declaring an upgrade safe.
+Since release 26.04, new CachyOS GUI installations use Shelly instead of Octopi. Release 26.06 removed `paru`. Do not detect or install a separate AUR helper. If Shelly is absent, continue the repository audit with `checkupdates` and report that Shelly and AUR state were not inspected.
 
-`shelly list-updates all` can print successful results while another backend fails. Capture its status immediately, preserve diagnostics, and mark each failed backend as **uninspected**, not up to date. If diagnostics do not identify the failure, query the relevant backends separately with `shelly list-updates <backend>` and check each status. A skipped or unavailable backend is also uninspected. Report successful checks separately; do not give a complete upgrade verdict while an in-scope backend remains uninspected.
+`checkupdates` exits with status `2` when there are no updates. Any other nonzero status is an audit failure, not evidence that the system is current. Fetch current Arch News and CachyOS Announcements separately before declaring an upgrade safe.
+
+`shelly list-updates all` continues past a failed backend, so it can print good results while another backend fails. Handle its result this way:
+
+- Capture its exit status immediately and keep its diagnostics.
+- Mark each failed, skipped, or unavailable backend as **uninspected**, not up to date.
+- If the diagnostics do not name the failed backend, run `shelly list-updates <backend>` for each in-scope backend and check each status.
+- Report successful checks separately. Do not give a complete upgrade verdict while an in-scope backend remains uninspected.
 
 For each reported AUR update and its required AUR dependencies, complete the read-only clone and inspection in [AUR-only requests](#aur-only-requests) before proposing the upgrade.
 
@@ -100,7 +107,6 @@ journalctl -p 3 -xb --no-pager
 command -v checkrebuild >/dev/null && checkrebuild
 pacdiff -o
 command -v shelly >/dev/null && shelly utility --pacfiles --output
-find /etc -type f \( -name '*.pacnew' -o -name '*.pacsave' \) -print 2>/dev/null
 df -hT
 du -sh /var/cache/pacman/pkg 2>/dev/null
 ```
@@ -113,7 +119,7 @@ CachyOS integration and recovery readiness:
 command -v kerver >/dev/null && kerver
 find /usr/lib/modules -mindepth 2 -maxdepth 2 -name pkgbase -print -exec cat {} \;
 command -v dkms >/dev/null && dkms status
-command -v chwd >/dev/null && sudo chwd --list-installed
+command -v chwd >/dev/null && chwd --list-installed
 command -v sbctl >/dev/null && sbctl status
 pacman -Qq | rg '^(linux|linux-lts|linux-zen|linux-hardened|linux-cachyos.*|nvidia.*|zfs.*|limine.*|grub.*|refind|systemd-boot-manager|snapper|snap-pac|limine-snapper-sync)$'
 findmnt --target /
@@ -218,7 +224,7 @@ Remaining: Critical / Review / Optional / No action
 
 An AUR review does not authorize installation. Check for an official CachyOS/Arch repository equivalent. `shelly search aur <package> --pkgbuild` displays only the PKGBUILD, so it is not sufficient for a full review.
 
-Resolve each package's `PackageBase` through AUR metadata, such as `shelly search aur <package> --detail --json`, after checking installed help. A split package's name may differ from its Git repository name. Use the reported package base for the clone URL and directory; keep the selected package names for installation. Review each unique package base once and inspect every tracked file without sourcing the PKGBUILD, building, or installing:
+Resolve each package's `PackageBase` from AUR metadata, for example with `shelly search aur <package> --detail --json`; check installed help first. A split package's name may differ from its Git repository name. Use the package base for the clone URL and directory, and keep the selected package names for installation. Review each unique package base once. Inspect every tracked file without sourcing the PKGBUILD, building, or installing:
 
 ```bash
 review_root=$(mktemp -d)
@@ -228,11 +234,33 @@ command git -C "$review_root/<package-base>" log --oneline -n 10
 command git -C "$review_root/<package-base>" rev-parse HEAD
 ```
 
-Inspect source URLs and checksums, `prepare()`, `build()`, `check()`, `package()`, install scripts, patches, service units, privilege escalation, destructive or obfuscated commands, unexpected network access, binary blobs, and upstream identity. If the previously reviewed commit is known, show its diff against the current tree. Otherwise, state that the prior diff is unavailable and review the complete current tree plus recent history. Shelly performs a separate review during its install flow. The `--check` option runs the PKGBUILD's `check()` function; it is not the security-review switch. An approved install is `shelly install aur <package> --check`; do not install or invoke another AUR frontend. Propose installation only after review, and preserve the full-upgrade rule.
+Inspect:
 
-Read `.SRCINFO` and the reviewed PKGBUILD to resolve runtime (`depends`), build (`makedepends`), and enabled test (`checkdepends`) dependencies, including architecture-specific and split-package requirements. Recursively review every AUR dependency that will be built or installed, including newly introduced ones absent from the update list. Include repository dependencies and any selected optional dependencies in the transaction plan. If static inspection cannot resolve a dependency, state the uncertainty; do not execute an unreviewed PKGBUILD to discover it.
+- source URLs and checksums;
+- `prepare()`, `build()`, `check()`, and `package()`;
+- install scripts, patches, and service units;
+- privilege escalation, destructive or obfuscated commands, unexpected network access, and binary blobs;
+- upstream identity.
 
-Record selected package names, package bases, reviewed Git commit IDs, and dependency scope in the approval plan. At Shelly's review and confirmation prompts, compare its actual build files, revisions, and transaction targets with that plan before allowing builds or installation. If a revision changed, files differ, or an unapproved dependency or target appears, pause the affected AUR work, inspect the new files and diff, and obtain approval for the changed scope. If the checkout or revision cannot be verified, stop that AUR transaction. Do not treat Shelly's own review as permission to expand the user's approval. A recorded AUR commit identifies the packaging recipe; it does not pin moving VCS source revisions.
+If the previously reviewed commit is known, show its diff against the current tree. Otherwise, say the prior diff is unavailable, and review the complete current tree plus recent history.
+
+Shelly performs a separate review during its install flow. The `--check` option only runs the PKGBUILD's `check()` function; it is not a security review. An approved install is `shelly install aur <package> --check`. Do not install or invoke another AUR frontend. Propose installation only after review, and preserve the full-upgrade rule.
+
+Resolve dependencies from `.SRCINFO` and the reviewed PKGBUILD. Cover runtime (`depends`), build (`makedepends`), and enabled test (`checkdepends`) dependencies, including architecture-specific and split-package requirements.
+
+- Recursively review every AUR dependency that will be built or installed, including new ones absent from the update list.
+- Include repository dependencies and any selected optional dependencies in the transaction plan.
+- If static inspection cannot resolve a dependency, state the uncertainty. Do not run an unreviewed PKGBUILD to find out.
+
+Record these in the approval plan: selected package names, package bases, reviewed Git commit IDs, and dependency scope.
+
+At Shelly's review and confirmation prompts, compare its build files, revisions, and transaction targets with that plan before allowing a build or install:
+
+- If a revision changed, files differ, or an unapproved dependency or target appears, pause the affected AUR work. Inspect the new files and diff, and get approval for the changed scope.
+- If the checkout or revision cannot be verified, stop that AUR transaction.
+- Shelly's own review never expands the user's approval.
+
+A recorded AUR commit pins the packaging recipe only. It does not pin moving VCS source revisions.
 
 Sources: [Arch AUR review and dependency guidance](https://wiki.archlinux.org/title/Arch_User_Repository#Installing_and_upgrading_packages), [Shelly CLI reference](https://www.seafoam-labs.org/shelly-alpm/docs/cli-reference/).
 

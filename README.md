@@ -22,7 +22,7 @@ The agent starts with read-only inspection. It reports the exact command, scope,
 - An installed CachyOS system
 - `pacman` and `pacman-contrib`
 - Shelly when it is present on the system
-- Optional tools such as `informant`, `arch-wiki-docs`, `checkrebuild`, Snapper, and boot-manager utilities are detected rather than installed automatically
+- Optional tools such as `informant`, `arch-wiki-docs` or `arch-wiki-lite`, `checkrebuild`, Snapper, and boot-manager utilities are detected rather than installed automatically
 
 ## Installation
 
